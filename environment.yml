@@ -1,0 +1,15 @@
+name: LendingClub.com
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.8
+  - numpy
+  - pandas
+  - scikit-learn
+  - matplotlib
+  - seaborn
+  - jupyter
+  - ipython
+  - tensorflow
+  - keras
