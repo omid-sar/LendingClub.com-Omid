@@ -21,7 +21,8 @@ df_org = pd.read_csv(
     "../../data/raw/lending_club_loan_two.csv",
     parse_dates=["issue_d", "earliest_cr_line"],
 )
-df_org.head(3)
+pd.set_option('display.max_columns', None)
+df_org.head(10)
 
 
 # -------------------------------------------------------------
