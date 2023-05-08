@@ -13,3 +13,4 @@ dependencies:
   - ipython
   - tensorflow
   - keras
+  - pickle
