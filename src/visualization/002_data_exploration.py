@@ -346,3 +346,4 @@ axes[2].set(
     ylabel="Counts",
     xlabel="initial_list_status",
 )
+
