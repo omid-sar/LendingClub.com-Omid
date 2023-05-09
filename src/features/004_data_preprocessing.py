@@ -113,4 +113,27 @@ missing_values_table(df)
 # 2.2.2
 # fill missing values in mort_acc column
 # mort_acc: is the number of mortgage accounts.
-df["mort_acc"].value_counts()
+# find the correlation between mort_acc and other numerical features
+df.corr()["mort_acc"].sort_values(ascending=False)[1:].plot(kind="barh")
+# total_acc has highest correlation with mort_acc
+
+# fill missing values in mort_acc column with mean of mort_acc for each total_acc
+total_acc_avg = df.groupby("total_acc")["mort_acc"].mean()
+# function to fill missing values in mort_acc column
+def fill_mort_acc(total_acc, mort_acc):
+    """
+    total_acc: is the total number of credit lines currently in the borrower's credit file
+    mort_acc: is the number of mortgage accounts.
+    """
+    if np.isnan(mort_acc):
+        return total_acc_avg[total_acc]
+    else:
+        return mort_acc
+# apply fill_mort_acc function to mort_acc column
+df["mort_acc"] = df.apply( lambda x: fill_mort_acc(x["total_acc"], x["mort_acc"]), axis=1))
+
+
+total_acc_avg.iloc[2]
+total_acc_avg.loc[2]
+total_acc_avg[1.0]
+total_acc_avg.index[0]
