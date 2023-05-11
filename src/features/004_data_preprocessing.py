@@ -185,6 +185,18 @@ df = pd.concat([df.drop("zip_code", axis=1), dummy_df], axis=1)
 df.drop("address", axis=1, inplace=True)
 
 
+# 2.3.5
+# issue_d: is the month which the loan was funded
+# in this project we will not use issue_d column because we will not know beforehand whether or not a loan will be issued in the future
+df.drop("issue_d", axis=1, inplace=True)
+
+# 2.3.6
+# earliest_cr_line: is the month the borrower's earliest reported credit line was opened
+# we will extract year from earliest_cr_line column and create a new column called earliest_cr_year
+df['earliest_cr_line'] = df.earliest_cr_line.dt.year
+
+
+
 #2.4 remove duplicate columns and rows
 
 # 2.4.1 find duplicate columns
@@ -199,27 +211,8 @@ duplicate_rows = df.duplicated()
 # remove duplicate rows
 df = df[~duplicate_rows]
 
+
 # ------------------------------------ 3. Export Proceessed Data ------------------------------------
 
 df.to_pickle("../../data/processed/processed_data.pkl")
-
-
-# ------------------------------------ 3. Data Preprocessing ------------------------------------
-
-
-#3.1 Train Test split
-X = df.drop("loan_status", axis=1)
-y = df["loan_status"]
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=101)
-
-#3.2 remove outliers
-# remove outliers in numerical features
-X_train = X_train[X_train['annual_inc'] <= 300000]
-X_train = X_train[X_train['dti'] <= 50]
-X_train = X_train[X_train['open_acc'] <= 50]
-X_train = X_train[X_train['total_acc'] <= 80]
-X_train = X_train[X_train['revol_util'] <= 120]
-X_train = X_train[X_train['revol_bal'] <= 300000]
-
-
 
