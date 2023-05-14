@@ -23,6 +23,8 @@ import matplotlib.pyplot as plt
 
 sys.path.append("..")
 df = pd.read_pickle("../../data/processed/processed_data.pkl")
+
+
 # ----------------------------- 2. Split/ Remove Outliers/ Feature Scaling -----------------------------
 # Split Data and Remove Outliers from Train Data and Feature Scaling
 
@@ -47,7 +49,7 @@ scaler = MinMaxScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-# ------------------------------------ 3. Train Model(XGBoost Classifier) ---------------------------------------------------
+# ------------------------------------ 3. XGBoost Classifier ---------------------------------------------------
 
 
 # 3.1 Function to print the scores of the model
@@ -70,6 +72,7 @@ def print_score(true, pred, train=True):
 
 # 3.2 Train Model
 
+"""
 # Define the parameter space
 param_dist = {
     "n_estimators": randint(50, 500),
@@ -81,6 +84,7 @@ param_dist = {
 xgb_clf = XGBClassifier(use_label_encoder=False, eval_metric="auc")  # or 'aucpr'
 
 # Create a RandomizedSearchCV instance
+
 xgb_cv = RandomizedSearchCV(
     estimator=xgb_clf,
     param_distributions=param_dist,
@@ -102,13 +106,15 @@ print("Best parameters found: ", xgb_cv.best_params_)
 ##                                'max_depth': 3, 'n_estimators': 413}
 
 
-# ------------------------------------ 4. Evaluate Model ---------------------------------------------------
+"""
 
-# Best parameters found in previous search
+
+#  4. Evaluate Model
+# 4.1 Best parameters found in previous search
 best_params = {"learning_rate": 0.2499165830291533, "max_depth": 3, "n_estimators": 413}
 
 # Create a new XGBClassifier instance with the best parameters
-best_model = XGBClassifier(use_label_encoder=False, eval_metric="aucpr", **best_params)
+best_model = XGBClassifier(use_label_encoder=False, eval_metric="auc", **best_params)
 
 # Train the model on your data
 best_model.fit(X_train, y_train)
@@ -121,27 +127,24 @@ y_test_pred = best_model.predict(X_test)
 print_score(y_train, y_train_pred, train=True)
 print_score(y_test, y_test_pred, train=False)
 
-# And evaluate these predictions using your preferred evaluation metric
 
-
+# 4.2 Plot roc curve
 y_scores = best_model.predict_proba(X_test)[:, 1]
-
 # Compute the false positive rate, true positive rate, and thresholds
 fpr, tpr, thresholds = roc_curve(y_test, y_scores)
-
 # Create the RocCurveDisplay object
 roc_display = RocCurveDisplay(fpr=fpr, tpr=tpr)
-
 # Plot the ROC curve
 roc_display.plot()
-
 # Show the plot
 plt.show()
 
-
+# 4.3 Create roc_auc_score dictionary for model comparison
 scores_dict = {
     "XGBoost": {
         "Train": roc_auc_score(y_train, best_model.predict(X_train)),
         "Test": roc_auc_score(y_test, best_model.predict(X_test)),
     },
 }
+
+# ------------------------------------ 5.
