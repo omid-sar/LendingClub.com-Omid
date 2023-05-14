@@ -172,7 +172,7 @@ rf_random_search.fit(X_train, y_train)
 
 # Print the best parameters
 print("Best parameters found: ", rf_random_search.best_params_)
-## Best parameters found:  {'n_estimators': {}
+##Best parameters found:  {'n_estimators': 184, 'min_samples_split': 6, 'min_samples_leaf': 1, 'max_depth': 40}
 
 # Best parameters found in previous search
 best_params = {'n_estimators': 100, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_depth': 49}
@@ -203,4 +203,40 @@ scores_dict["Random Forest"] = { Train: roc_auc_score(y_train, best_model.predic
 
 # ------------------------------------ 5. Neural Network Classifier ---------------------------------------------------
 
-# 5.1 Train Model(Neural Network)
+# Function to print the scores of NN_model
+
+def evaluate_NN_model(true, pred, dataset_type='Train'):
+    clf_report = pd.DataFrame(classification_report(true, pred, output_dict=True))
+    print(f"{dataset_type} Result:\n================================================")
+    print(f"Accuracy Score: {accuracy_score(true, pred) * 100:.2f}%")
+    print("_______________________________________________")
+    print(f"CLASSIFICATION REPORT:\n{clf_report}")
+    print("_______________________________________________")
+    print(f"Confusion Matrix: \n {confusion_matrix(true, pred)}\n")
+
+#evaluate_NN_model(y_train, y_train_pred, dataset_type='Train')
+#evaluate_NN_model(y_test, y_test_pred, dataset_type='Test')
+
+
+# Function to plot the learning curve of NN_model
+def plot_learning_evolution(r):
+    plt.figure(figsize=(12, 8))
+    
+    if 'loss' in r.history:
+        plt.subplot(2, 2, 1)
+        plt.plot(r.history['loss'], label='Loss')
+        if 'val_loss' in r.history:
+            plt.plot(r.history['val_loss'], label='val_Loss')
+        plt.title('Loss evolution during training')
+        plt.legend()
+    
+    if 'AUC' in r.history:
+        plt.subplot(2, 2, 2)
+        plt.plot(r.history['AUC'], label='AUC')
+        if 'val_AUC' in r.history:
+            plt.plot(r.history['val_AUC'], label='val_AUC')
+        plt.title('AUC score evolution during training')
+        plt.legend()
+    
+    plt.tight_layout()  # adjust subplot parameters for better spacing
+    plt.show()
