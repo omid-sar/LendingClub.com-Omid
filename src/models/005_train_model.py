@@ -25,7 +25,7 @@ sys.path.append("..")
 df = pd.read_pickle("../../data/processed/processed_data.pkl")
 
 
-# ----------------------------- 2. Split/ Remove Outliers/ Feature Scaling -----------------------------
+# ------------------------- 2. Split/ Remove Outliers/ Feature Scaling / Print Score Function------------------------
 # Split Data and Remove Outliers from Train Data and Feature Scaling
 
 # 2.1 Split Data to train and test
@@ -49,26 +49,17 @@ scaler = MinMaxScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
+# 2.5 Function to print scores and confusion matrix for Model Evaluation
+def print_score(true, pred, dataset_type='Train'):
+        clf_report = pd.DataFrame(classification_report(true, pred, output_dict=True))
+        print(f"{dataset_type} Result:\n================================================================================")
+        print(f"Accuracy Score: {accuracy_score(true, pred):.4f}\n")
+        print(f"CLASSIFICATION REPORT: \n{clf_report}\n")
+        print(f"Confusion Matrix: \n {confusion_matrix(true, pred)}\n")
+
+
+
 # ------------------------------------ 3. XGBoost Classifier ---------------------------------------------------
-
-
-# 3.1 Function to print the scores of the model
-def print_score(true, pred, train=True):
-    if train:
-        clf_report = pd.DataFrame(classification_report(true, pred, output_dict=True))
-        print("Train Result:\n")
-        print(f"accuracy score: {accuracy_score(true, pred):.4f}\n")
-        print(f"classification report: \n\n{classification_report(true, pred)}\n")
-        print(f"Confusion Matrix: \n {confusion_matrix(true, pred)}\n")
-        print("------------------------------------------------------")
-    elif train == False:
-        clf_report = pd.DataFrame(classification_report(true, pred, output_dict=True))
-        print("Test Result:\n")
-        print(f"accuracy score: {accuracy_score(true, pred):.4f}\n")
-        print(f"classification report: \n\n{classification_report(true, pred)}\n")
-        print(f"Confusion Matrix: \n {confusion_matrix(true, pred)}\n")
-        print("------------------------------------------------------")
-
 
 # 3.2 Train Model
 
@@ -121,8 +112,8 @@ y_test_pred = best_model.predict(X_test)
 
 #  3.3  Evaluate Model (XGBoost)
 
-print_score(y_train, y_train_pred, train=True)
-print_score(y_test, y_test_pred, train=False)
+print_score(y_train, y_train_pred, dataset_type='Train')
+print_score(y_test, y_test_pred, dataset_type='Test')
 
 
 # 3.3.1  Plot roc curve
@@ -147,6 +138,8 @@ scores_dict = {
 # ------------------------------------ 4. Random Forest Classifier ---------------------------------------------------
 
 # 4.1 Train Model(Random Forest)
+
+"""
 # Define the parameter space
 param_dist = {
     'n_estimators': range(100, 500),
@@ -174,8 +167,11 @@ rf_random_search.fit(X_train, y_train)
 print("Best parameters found: ", rf_random_search.best_params_)
 ##Best parameters found:  {'n_estimators': 184, 'min_samples_split': 6, 'min_samples_leaf': 1, 'max_depth': 40}
 
+"""
+
+
 # Best parameters found in previous search
-best_params = {'n_estimators': 100, 'min_samples_split': 2, 'min_samples_leaf': 1, 'max_depth': 49}
+best_params = {'n_estimators': 184, 'min_samples_split': 6, 'min_samples_leaf': 1, 'max_depth': 40}
 best_model = RandomForestClassifier()
 best_model.fit(X_train, y_train)
 y_train_pred = best_model.predict(X_train)
@@ -183,8 +179,8 @@ y_test_pred = best_model.predict(X_test)
 
 #  4.2  Evaluate Model (Random Forest)
 
-print_score(y_train, y_train_pred, train=True)
-print_score(y_test, y_test_pred, train=False)
+print_score(y_train, y_train_pred, dataset_type='Train')
+print_score(y_test, y_test_pred, dataset_type='Test')
 
 # 4.2.1  Plot roc curve
 y_scores = best_model.predict_proba(X_test)[:, 1]
@@ -203,19 +199,7 @@ scores_dict["Random Forest"] = { Train: roc_auc_score(y_train, best_model.predic
 
 # ------------------------------------ 5. Neural Network Classifier ---------------------------------------------------
 
-# Function to print the scores of NN_model
 
-def evaluate_NN_model(true, pred, dataset_type='Train'):
-    clf_report = pd.DataFrame(classification_report(true, pred, output_dict=True))
-    print(f"{dataset_type} Result:\n================================================")
-    print(f"Accuracy Score: {accuracy_score(true, pred) * 100:.2f}%")
-    print("_______________________________________________")
-    print(f"CLASSIFICATION REPORT:\n{clf_report}")
-    print("_______________________________________________")
-    print(f"Confusion Matrix: \n {confusion_matrix(true, pred)}\n")
-
-#evaluate_NN_model(y_train, y_train_pred, dataset_type='Train')
-#evaluate_NN_model(y_test, y_test_pred, dataset_type='Test')
 
 
 # Function to plot the learning curve of NN_model
