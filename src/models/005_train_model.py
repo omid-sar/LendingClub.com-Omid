@@ -1,10 +1,17 @@
-import numpy as np
-import pandas as pd
+# Standard library imports
 import os
 import sys
+
+# Third party imports
+import numpy as np
+import pandas as pd
 from scipy import stats
 from scipy.stats import randint, uniform
+import matplotlib.pyplot as plt
+
+# Machine learning libraries
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import (
     accuracy_score,
     confusion_matrix,
@@ -12,12 +19,20 @@ from sklearn.metrics import (
     roc_auc_score,
     roc_curve,
     auc,
+    ConfusionMatrixDisplay,
+    RocCurveDisplay,
 )
-from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay
-from sklearn.preprocessing import MinMaxScaler
-from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier
-import matplotlib.pyplot as plt
+from xgboost import XGBClassifier
+
+# Deep learning libraries
+from tensorflow.keras.layers import Dense, Dropout, BatchNormalization, Input
+from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.metrics import AUC
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.losses import BinaryCrossentropy
+
 # ------------------------------------ 1. Read Data ---------------------------------------------------
 
 
@@ -51,21 +66,24 @@ X_test = scaler.transform(X_test)
 
 # 2.5 Function to print scores and confusion matrix for Model Evaluation
 
-def print_score(true, pred, dataset_type='Train', model_name='Model'):
-        clf_report = pd.DataFrame(classification_report(true, pred, output_dict=True))
-        print(f"{model_name} {dataset_type} Result:\n================================================================================")
-        print(f"Accuracy Score: {accuracy_score(true, pred):.4f}\n")
-        print(f"CLASSIFICATION REPORT: \n{clf_report}\n")
-        print(f"Confusion Matrix: \n {confusion_matrix(true, pred)}\n")
 
+def print_score(true, pred, dataset_type="Train", model_name="Model"):
+    clf_report = pd.DataFrame(classification_report(true, pred, output_dict=True))
+    print(
+        f"{model_name} {dataset_type} Result:\n================================================================================"
+    )
+    print(f"Accuracy Score: {accuracy_score(true, pred):.4f}\n")
+    print(f"CLASSIFICATION REPORT: \n{clf_report}\n")
+    print(f"Confusion Matrix: \n {confusion_matrix(true, pred)}\n")
 
 
 def plot_roc_curve(model, X_test, y_test, model_name):
     y_scores = model.predict_proba(X_test)[:, 1]
     fpr, tpr, thresholds = roc_curve(y_test, y_scores)
     roc_display = RocCurveDisplay(fpr=fpr, tpr=tpr).plot()
-    plt.title(f'ROC Curve for {model_name}')
+    plt.title(f"ROC Curve for {model_name}")
     plt.show()
+
 
 # Example usage
 # plot_roc_curve(best_model, X_test, y_test, 'Best Model')
@@ -123,12 +141,12 @@ y_test_pred = best_model.predict(X_test)
 
 #  3.3  Evaluate Model (XGBoost)
 
-print_score(y_train, y_train_pred, dataset_type='Train', model_name='XGBoost')
-print_score(y_test, y_test_pred, dataset_type='Test', model_name='XGBoost')
+print_score(y_train, y_train_pred, dataset_type="Train", model_name="XGBoost")
+print_score(y_test, y_test_pred, dataset_type="Test", model_name="XGBoost")
 
 
 # 3.3.1  Plot roc curve
-plot_roc_curve(best_model, X_test, y_test, 'XGBoost')
+plot_roc_curve(best_model, X_test, y_test, "XGBoost")
 
 # 3.3.2 Create roc_auc_score dictionary for model comparison
 scores_dict = {
@@ -174,7 +192,12 @@ print("Best parameters found: ", rf_random_search.best_params_)
 
 
 # Best parameters found in previous search
-best_params = {'n_estimators': 184, 'min_samples_split': 6, 'min_samples_leaf': 1, 'max_depth': 40}
+best_params = {
+    "n_estimators": 184,
+    "min_samples_split": 6,
+    "min_samples_leaf": 1,
+    "max_depth": 40,
+}
 best_model = RandomForestClassifier()
 best_model.fit(X_train, y_train)
 y_train_pred = best_model.predict(X_train)
@@ -182,40 +205,92 @@ y_test_pred = best_model.predict(X_test)
 
 #  4.2  Evaluate Model (Random Forest)
 
-print_score(y_train, y_train_pred, dataset_type='Train', model_name='Random Forest')
-print_score(y_test, y_test_pred, dataset_type='Test', model_name='Random Forest')
+print_score(y_train, y_train_pred, dataset_type="Train", model_name="Random Forest")
+print_score(y_test, y_test_pred, dataset_type="Test", model_name="Random Forest")
 
 # 4.2.1  Plot roc curve
-plot_roc_curve(best_model, X_test, y_test, 'Random Forest')
+plot_roc_curve(best_model, X_test, y_test, "Random Forest")
 
 # 4.2.2 add roc_auc_score dictionary for model comparison
-scores_dict["Random Forest"] = { Train: roc_auc_score(y_train, best_model.predict(X_train)),
-                                Test: roc_auc_score(y_test, best_model.predict(X_test))}
+scores_dict["Random Forest"] = {
+    Train: roc_auc_score(y_train, best_model.predict(X_train)),
+    Test: roc_auc_score(y_test, best_model.predict(X_test)),
+}
 
 # ------------------------------------ 5. Neural Network Classifier ---------------------------------------------------
-
-
 
 
 # Function to plot the learning curve of NN_model
 def plot_learning_evolution(r):
     plt.figure(figsize=(12, 8))
-    
-    if 'loss' in r.history:
+
+    if "loss" in r.history:
         plt.subplot(2, 2, 1)
-        plt.plot(r.history['loss'], label='Loss')
-        if 'val_loss' in r.history:
-            plt.plot(r.history['val_loss'], label='val_Loss')
-        plt.title('Loss evolution during training')
+        plt.plot(r.history["loss"], label="Loss")
+        if "val_loss" in r.history:
+            plt.plot(r.history["val_loss"], label="val_Loss")
+        plt.title("Loss evolution during training")
         plt.legend()
-    
-    if 'AUC' in r.history:
+
+    if "AUC" in r.history:
         plt.subplot(2, 2, 2)
-        plt.plot(r.history['AUC'], label='AUC')
-        if 'val_AUC' in r.history:
-            plt.plot(r.history['val_AUC'], label='val_AUC')
-        plt.title('AUC score evolution during training')
+        plt.plot(r.history["AUC"], label="AUC")
+        if "val_AUC" in r.history:
+            plt.plot(r.history["val_AUC"], label="val_AUC")
+        plt.title("AUC score evolution during training")
         plt.legend()
-    
+
     plt.tight_layout()  # adjust subplot parameters for better spacing
     plt.show()
+
+
+def nn_model(
+    num_columns,
+    num_labels,
+    hidden_units,
+    dropout_rates,
+    learning_rate,
+    activation_function="relu",
+    optimizer=Adam,
+    early_stopping_patience=10,
+    model_checkpoint_path="model.h5",
+):
+    # Define the input layer
+    inp = Input(shape=(num_columns,))
+    x = BatchNormalization()(inp)
+    x = Dropout(dropout_rates[0])(x)
+
+    # Define the hidden layers
+    for i in range(len(hidden_units)):
+        x = Dense(hidden_units[i], activation=activation_function)(x)
+        x = BatchNormalization()(x)
+        x = Dropout(dropout_rates[i + 1])(x)
+
+    # Define the output layer
+    x = Dense(num_labels, activation="sigmoid")(x)
+
+    # Define the model and compile it
+    model = Model(inputs=inp, outputs=x)
+    model.compile(
+        optimizer=optimizer(learning_rate),
+        loss=BinaryCrossentropy(),
+        metrics=[AUC(name="AUC")],
+    )
+
+    # Define early stopping and model checkpointing
+    early_stopping = EarlyStopping(
+        monitor="val_AUC",
+        patience=early_stopping_patience,
+        mode="max",
+        restore_best_weights=True,
+    )
+    model_checkpoint = ModelCheckpoint(
+        model_checkpoint_path, monitor="val_AUC", mode="max", save_best_only=True
+    )
+
+    return model, [early_stopping, model_checkpoint]
+
+
+# Example usage
+# model, callbacks = nn_model(num_columns, num_labels, hidden_units, dropout_rates, learning_rate)
+# model.fit(X_train, y_train, epochs=100, validation_data=(X_val, y_val), callbacks=callbacks)
