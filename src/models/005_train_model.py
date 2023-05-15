@@ -50,14 +50,25 @@ X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
 # 2.5 Function to print scores and confusion matrix for Model Evaluation
-def print_score(true, pred, dataset_type='Train'):
+
+def print_score(true, pred, dataset_type='Train', model_name='Model'):
         clf_report = pd.DataFrame(classification_report(true, pred, output_dict=True))
-        print(f"{dataset_type} Result:\n================================================================================")
+        print(f"{model_name} {dataset_type} Result:\n================================================================================")
         print(f"Accuracy Score: {accuracy_score(true, pred):.4f}\n")
         print(f"CLASSIFICATION REPORT: \n{clf_report}\n")
         print(f"Confusion Matrix: \n {confusion_matrix(true, pred)}\n")
 
 
+
+def plot_roc_curve(model, X_test, y_test, model_name):
+    y_scores = model.predict_proba(X_test)[:, 1]
+    fpr, tpr, thresholds = roc_curve(y_test, y_scores)
+    roc_display = RocCurveDisplay(fpr=fpr, tpr=tpr).plot()
+    plt.title(f'ROC Curve for {model_name}')
+    plt.show()
+
+# Example usage
+# plot_roc_curve(best_model, X_test, y_test, 'Best Model')
 
 # ------------------------------------ 3. XGBoost Classifier ---------------------------------------------------
 
@@ -112,20 +123,12 @@ y_test_pred = best_model.predict(X_test)
 
 #  3.3  Evaluate Model (XGBoost)
 
-print_score(y_train, y_train_pred, dataset_type='Train')
-print_score(y_test, y_test_pred, dataset_type='Test')
+print_score(y_train, y_train_pred, dataset_type='Train', model_name='XGBoost')
+print_score(y_test, y_test_pred, dataset_type='Test', model_name='XGBoost')
 
 
 # 3.3.1  Plot roc curve
-y_scores = best_model.predict_proba(X_test)[:, 1]
-# Compute the false positive rate, true positive rate, and thresholds
-fpr, tpr, thresholds = roc_curve(y_test, y_scores)
-# Create the RocCurveDisplay object
-roc_display = RocCurveDisplay(fpr=fpr, tpr=tpr)
-# Plot the ROC curve
-roc_display.plot()
-# Show the plot
-plt.show()
+plot_roc_curve(best_model, X_test, y_test, 'XGBoost')
 
 # 3.3.2 Create roc_auc_score dictionary for model comparison
 scores_dict = {
@@ -179,19 +182,11 @@ y_test_pred = best_model.predict(X_test)
 
 #  4.2  Evaluate Model (Random Forest)
 
-print_score(y_train, y_train_pred, dataset_type='Train')
-print_score(y_test, y_test_pred, dataset_type='Test')
+print_score(y_train, y_train_pred, dataset_type='Train', model_name='Random Forest')
+print_score(y_test, y_test_pred, dataset_type='Test', model_name='Random Forest')
 
 # 4.2.1  Plot roc curve
-y_scores = best_model.predict_proba(X_test)[:, 1]
-# Compute the false positive rate, true positive rate, and thresholds
-fpr, tpr, thresholds = roc_curve(y_test, y_scores)
-# Create the RocCurveDisplay object
-roc_display = RocCurveDisplay(fpr=fpr, tpr=tpr)
-# Plot the ROC curve
-roc_display.plot()
-# Show the plot
-plt.show()
+plot_roc_curve(best_model, X_test, y_test, 'Random Forest')
 
 # 4.2.2 add roc_auc_score dictionary for model comparison
 scores_dict["Random Forest"] = { Train: roc_auc_score(y_train, best_model.predict(X_train)),
