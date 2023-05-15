@@ -39,7 +39,7 @@ from tensorflow.keras.losses import BinaryCrossentropy
 sys.path.append("..")
 df = pd.read_pickle("../../data/processed/processed_data.pkl")
 
-
+len(df.columns)
 # ------------------------- 2. Split/ Remove Outliers/ Feature Scaling / Print Score Function------------------------
 # Split Data and Remove Outliers from Train Data and Feature Scaling
 
@@ -251,7 +251,7 @@ def nn_model(
     dropout_rates,
     learning_rate,
     activation_function="relu",
-    optimizer=Adam,
+    optimizer="adam",
     early_stopping_patience=10,
     model_checkpoint_path="model.h5",
 ):
@@ -292,5 +292,11 @@ def nn_model(
 
 
 # Example usage
-# model, callbacks = nn_model(num_columns, num_labels, hidden_units, dropout_rates, learning_rate)
+num_columns = X_train.shape[1]
+num_labels = 1
+hidden_units = [128, 64]
+dropout_rates = [0.2, 0.5, 0.5]
+learning_rate = 0.001
+
+ model, callbacks = nn_model(num_columns, num_labels, hidden_units, dropout_rates, learning_rate)
 # model.fit(X_train, y_train, epochs=100, validation_data=(X_val, y_val), callbacks=callbacks)
