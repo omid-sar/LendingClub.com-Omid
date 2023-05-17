@@ -299,4 +299,4 @@ dropout_rates = [0.2, 0.5, 0.5]
 learning_rate = 0.001
 
  model, callbacks = nn_model(num_columns, num_labels, hidden_units, dropout_rates, learning_rate)
-# model.fit(X_train, y_train, epochs=100, validation_data=(X_val, y_val), callbacks=callbacks)
+model.fit(X_train, y_train, epochs=100, validation_data=(X_val, y_val), callbacks=callbacks)
