@@ -63,7 +63,7 @@ X_test, y_test = test.drop("loan_status", axis=1), test.loan_status
 scaler = MinMaxScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
-
+X_test
 # 2.5 Function to print scores and confusion matrix for Model Evaluation
 
 
@@ -85,8 +85,6 @@ def plot_roc_curve(model, X_test, y_test, model_name):
     plt.show()
 
 
-# Example usage
-# plot_roc_curve(best_model, X_test, y_test, 'Best Model')
 
 # ------------------------------------ 3. XGBoost Classifier ---------------------------------------------------
 
@@ -155,7 +153,7 @@ scores_dict = {
         "Test": roc_auc_score(y_test, best_model.predict(X_test)),
     },
 }
-
+scores_dict
 # ------------------------------------ 4. Random Forest Classifier ---------------------------------------------------
 
 # 4.1 Train Model(Random Forest)
@@ -213,12 +211,15 @@ plot_roc_curve(best_model, X_test, y_test, "Random Forest")
 
 # 4.2.2 add roc_auc_score dictionary for model comparison
 scores_dict["Random Forest"] = {
-    Train: roc_auc_score(y_train, best_model.predict(X_train)),
-    Test: roc_auc_score(y_test, best_model.predict(X_test)),
+    "Train": roc_auc_score(y_train, best_model.predict(X_train)),
+    "Test": roc_auc_score(y_test, best_model.predict(X_test)),
 }
 
 # ------------------------------------ 5. Neural Network Classifier ---------------------------------------------------
-
+X_train = np.array(X_train).astype(np.float32)
+X_test = np.array(X_test).astype(np.float32)
+y_train = np.array(y_train).astype(np.float32)
+y_test = np.array(y_test).astype(np.float32)
 
 # Function to plot the learning curve of NN_model
 def plot_learning_evolution(r):
@@ -251,7 +252,7 @@ def nn_model(
     dropout_rates,
     learning_rate,
     activation_function="relu",
-    optimizer="adam",
+    optimizer= Adam,
     early_stopping_patience=10,
     model_checkpoint_path="model.h5",
 ):
@@ -299,4 +300,9 @@ dropout_rates = [0.2, 0.5, 0.5]
 learning_rate = 0.001
 
  model, callbacks = nn_model(num_columns, num_labels, hidden_units, dropout_rates, learning_rate)
-model.fit(X_train, y_train, epochs=100, validation_data=(X_val, y_val), callbacks=callbacks)
+r = model.fit(X_train, y_train, epochs=50, validation_data=(X_test, y_test), callbacks=callbacks)
+
+
+y_train_pred = model.predict(X_train)
+y_test_pred = model.predict(X_test)
+
