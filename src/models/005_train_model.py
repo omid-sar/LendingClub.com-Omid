@@ -8,6 +8,7 @@ import pandas as pd
 from scipy import stats
 from scipy.stats import randint, uniform
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Machine learning libraries
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
@@ -85,7 +86,6 @@ def plot_roc_curve(model, X_test, y_test, model_name):
     plt.show()
 
 
-
 # ------------------------------------ 3. XGBoost Classifier ---------------------------------------------------
 
 # 3.2 Train Model
@@ -129,12 +129,12 @@ print("Best parameters found: ", xgb_cv.best_params_)
 
 best_params = {"learning_rate": 0.2499165830291533, "max_depth": 3, "n_estimators": 413}
 # Create a new XGBClassifier instance with the best parameters
-best_model = XGBClassifier(use_label_encoder=False, eval_metric="auc", **best_params)
+xgb_clf = XGBClassifier(use_label_encoder=False, eval_metric="auc", **best_params)
 # Train the model on your data
-best_model.fit(X_train, y_train)
+xgb_clf.fit(X_train, y_train)
 # Now you can use the trained model to make predictions
-y_train_pred = best_model.predict(X_train)
-y_test_pred = best_model.predict(X_test)
+y_train_pred = xgb_clf.predict(X_train)
+y_test_pred = xgb_clf.predict(X_test)
 
 
 #  3.3  Evaluate Model (XGBoost)
@@ -144,16 +144,15 @@ print_score(y_test, y_test_pred, dataset_type="Test", model_name="XGBoost")
 
 
 # 3.3.1  Plot roc curve
-plot_roc_curve(best_model, X_test, y_test, "XGBoost")
+plot_roc_curve(xgb_clf, X_test, y_test, "XGBoost")
 
 # 3.3.2 Create roc_auc_score dictionary for model comparison
 scores_dict = {
     "XGBoost": {
-        "Train": roc_auc_score(y_train, best_model.predict(X_train)),
-        "Test": roc_auc_score(y_test, best_model.predict(X_test)),
+        "Train": roc_auc_score(y_train, xgb_clf.predict(X_train)),
+        "Test": roc_auc_score(y_test, xgb_clf.predict(X_test)),
     },
 }
-scores_dict
 # ------------------------------------ 4. Random Forest Classifier ---------------------------------------------------
 
 # 4.1 Train Model(Random Forest)
@@ -196,10 +195,10 @@ best_params = {
     "min_samples_leaf": 1,
     "max_depth": 40,
 }
-best_model = RandomForestClassifier()
-best_model.fit(X_train, y_train)
-y_train_pred = best_model.predict(X_train)
-y_test_pred = best_model.predict(X_test)
+rf_clf = RandomForestClassifier()
+rf_clf.fit(X_train, y_train)
+y_train_pred = rf_clf.predict(X_train)
+y_test_pred = rf_clf.predict(X_test)
 
 #  4.2  Evaluate Model (Random Forest)
 
@@ -207,21 +206,18 @@ print_score(y_train, y_train_pred, dataset_type="Train", model_name="Random Fore
 print_score(y_test, y_test_pred, dataset_type="Test", model_name="Random Forest")
 
 # 4.2.1  Plot roc curve
-plot_roc_curve(best_model, X_test, y_test, "Random Forest")
+plot_roc_curve(rf_clf, X_test, y_test, "Random Forest")
 
 # 4.2.2 add roc_auc_score dictionary for model comparison
 scores_dict["Random Forest"] = {
-    "Train": roc_auc_score(y_train, best_model.predict(X_train)),
-    "Test": roc_auc_score(y_test, best_model.predict(X_test)),
+    "Train": roc_auc_score(y_train, rf_clf.predict(X_train)),
+    "Test": roc_auc_score(y_test, rf_clf.predict(X_test)),
 }
 
 # ------------------------------------ 5. Neural Network Classifier ---------------------------------------------------
-X_train = np.array(X_train).astype(np.float32)
-X_test = np.array(X_test).astype(np.float32)
-y_train = np.array(y_train).astype(np.float32)
-y_test = np.array(y_test).astype(np.float32)
 
-# Function to plot the learning curve of NN_model
+
+# 5.1 Function to plot the learning curve of NN_model
 def plot_learning_evolution(r):
     plt.figure(figsize=(12, 8))
 
@@ -245,6 +241,7 @@ def plot_learning_evolution(r):
     plt.show()
 
 
+# 5.2 Define the model
 def nn_model(
     num_columns,
     num_labels,
@@ -252,7 +249,7 @@ def nn_model(
     dropout_rates,
     learning_rate,
     activation_function="relu",
-    optimizer= Adam,
+    optimizer=Adam,
     early_stopping_patience=10,
     model_checkpoint_path="model.h5",
 ):
@@ -292,17 +289,66 @@ def nn_model(
     return model, [early_stopping, model_checkpoint]
 
 
-# Example usage
+# 5.3 Define Hyperparameters
 num_columns = X_train.shape[1]
 num_labels = 1
 hidden_units = [128, 64]
 dropout_rates = [0.2, 0.5, 0.5]
 learning_rate = 0.001
 
- model, callbacks = nn_model(num_columns, num_labels, hidden_units, dropout_rates, learning_rate)
-r = model.fit(X_train, y_train, epochs=50, validation_data=(X_test, y_test), callbacks=callbacks)
-
+# 5.4 Train Model(Neural Network)
+model, callbacks = nn_model(
+    num_columns, num_labels, hidden_units, dropout_rates, learning_rate
+)
+r = model.fit(
+    X_train, y_train, epochs=100, validation_data=(X_test, y_test), callbacks=callbacks
+)
 
 y_train_pred = model.predict(X_train)
 y_test_pred = model.predict(X_test)
 
+# 5.5 Evaluate Model (Neural Network)
+
+# 5.5.1 Plot the learning curve
+plot_learning_evolution(r)
+
+# 5.5.2 Print the scores
+print_score(
+    y_train, y_train_pred.round(), dataset_type="Train", model_name="Neural Network"
+)
+print_score(
+    y_test, y_test_pred.round(), dataset_type="Test", model_name="Neural Network"
+)
+
+
+scores_dict["ANNs"] = {
+    "Train": roc_auc_score(y_train, rf_clf.predict(X_train)),
+    "Test": roc_auc_score(y_test, rf_clf.predict(X_test)),
+}
+# ------------------------------------ 6. Model Comparison ---------------------------------------------------
+
+# Convert scores_dict to a pandas DataFrame
+
+ml_models = {"Random Forest": rf_clf, "XGBoost": xgb_clf, "ANNs": model}
+
+for model in ml_models:
+    if model == "ANNs":
+        y_pred_prob = ml_models[model].predict(X_test)[:, 0]
+    else:
+        y_pred_prob = ml_models[model].predict_proba(X_test)[:, 1]
+
+    print(
+        f"{model.upper():{30}} roc_auc_score: {roc_auc_score(y_test, y_pred_prob):.3f}"
+    )
+
+scores_df = pd.DataFrame(scores_dict)
+scores_df_tidy = scores_df.reset_index().melt(id_vars="index")
+scores_df_tidy.columns = ["Model", "Data", "Score"]
+
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.barplot(x="Score", y="Model", hue="Data", data=scores_df_tidy, palette="deep")
+ax.set(xlim=(0.5, 1), ylabel="Model", xlabel="ROC AUC Score")
+plt.title("Model Comparison: ROC AUC Score on Train and Test Data")
+sns.despine(left=True, bottom=True)
+
+plt.show()
