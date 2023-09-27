@@ -15,15 +15,14 @@ import utility.plot_settings
 
 df = pd.read_pickle("../../data/interim/df.pkl")
 
-
+df
 # -------------------------------------------------------------
 # 2. Data Visualization
 # -------------------------------------------------------------
 
 # Heatmap of Correlation
 plt.figure(figsize=(8, 8))
-sns.heatmap(df.corr(), annot=True, cmap="viridis", cbar=False)
-
+sns.heatmap(df.corr(numeric_only=True), annot=True, cmap="viridis", cbar=False)
 """
 Notice
 There is a perfect correlation betweenn "loan_amntand" and  "installment"
@@ -346,4 +345,3 @@ axes[2].set(
     ylabel="Counts",
     xlabel="initial_list_status",
 )
-
