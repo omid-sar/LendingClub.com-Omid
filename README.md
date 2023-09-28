@@ -37,7 +37,7 @@ The project follows a structured approach, starting with data processing and exp
 A comparison of the three models was conducted based on their ROC-AUC scores on the train and test datasets, and the results were visualized in a bar plot.
 
 ## Project Organization
-
+```
 ├── LICENSE
 ├── README.md          <- The top-level README for developers using this project.
 ├── data
@@ -62,7 +62,7 @@ A comparison of the three models was conducted based on their ROC-AUC scores on 
 │       ├── 002_data_exploration.py       <- Script for data exploration and visualization.
 ├── environment.yml    <- Conda environment file.
 └── .gitignore         <- Specifies intentionally untracked files to ignore when using Git.
-
+```
 
 ## Prerequisites
 
