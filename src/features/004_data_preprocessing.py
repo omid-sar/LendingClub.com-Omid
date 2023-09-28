@@ -16,7 +16,7 @@ df = pd.read_pickle("../../data/interim/df.pkl")
 
 # Correlation between loan_status and other numerical features
 df["loan_status"] = df["loan_status"].map({"Fully Paid": 1, "Charged Off": 0})
-df.corr()["loan_status"].sort_values(ascending=False)[1:].plot(kind="barh")
+df.corr(numeric_only=True)["loan_status"].sort_values(ascending=False)[1:].plot(kind="barh")
 
 # ------------------------------------ 2. Data Preprocessing ------------------------------------
 
@@ -118,7 +118,7 @@ missing_values_table(df)
 # fill missing values in mort_acc column
 # mort_acc: is the number of mortgage accounts.
 # find the correlation between mort_acc and other numerical features
-df.corr()["mort_acc"].sort_values(ascending=False)[1:].plot(kind="barh")
+df.corr(numeric_only=True)["mort_acc"].sort_values(ascending=False)[1:]
 # total_acc has highest correlation with mort_acc
 
 # fill missing values in mort_acc column with mean of mort_acc for each total_acc

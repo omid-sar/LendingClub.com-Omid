@@ -56,7 +56,7 @@ train = train[train["revol_util"] <= 120]
 train = train[train["revol_bal"] <= 300000]
 
 # 2.3  split train and test data into X and y
-X_train, y_train = train.drop("loan_status", axis=1), train.loan_status
+X_train, y_train = train.drop("loan_status", axis=1), train.loan_status.astype("int64")
 X_test, y_test = test.drop("loan_status", axis=1), test.loan_status
 
 # 2.4 Normalize Data
